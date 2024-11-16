@@ -47,6 +47,15 @@ const dbConnect = async () => {
       res.send(result)
     })
 
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      // console.log(email)
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      // console.log("users by email :  ", user)
+      res.send(user)
+    })
+
 
   } catch (error) {
     console.log(error.name, error.message);
