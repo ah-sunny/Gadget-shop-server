@@ -21,6 +21,10 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+const db = client.db("Gadget-shop");
+// const bookParcelCollection = db.collection("bookParcel");
+const userCollection = db.collection('users')
+
 const dbConnect = async () => {
   try {
     client.connect();
@@ -29,13 +33,19 @@ const dbConnect = async () => {
     //jwt
     app.post("/jwt", async (req, res) => {
       const userEmail = req.body
-      console.log(userEmail)
+      // console.log(userEmail)
       const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN, {
         expiresIn: '10d'
       })
       res.send({ token })
     })
 
+    app.post('/users', async (req, res) => {
+      const user = req.body
+      // console.log("user:  ",user)
+      const result = await userCollection.insertOne(user)
+      res.send(result)
+    })
 
 
   } catch (error) {
