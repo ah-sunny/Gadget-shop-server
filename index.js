@@ -77,6 +77,7 @@ const dbConnect = async () => {
       res.send({ token })
     })
 
+
     app.post('/users', async (req, res) => {
       const user = req.body
       // console.log("user:  ",user)
@@ -97,12 +98,46 @@ const dbConnect = async () => {
       res.send(user)
     })
 
+
     //product
     app.post('/products', verifyToken, verifySeller, async (req, res) => {
       const item = req.body
       // console.log("user:  ",user)
       const result = await productCollection.insertOne(item)
       res.send(result)
+    })
+    app.get('/all-product', async (req, res) => {
+
+      const { title, sort, category, brand } = req.query;
+      const query = {};
+
+      if (title) {
+        query.title = { $regex: title, $options: "i" };
+      }
+      if (category) {
+        query.category = { $regex: category, $options: "i" };
+      }
+      if (brand) {
+        query.brand = brand;
+      }
+
+      const sortOption = sort === "asc" ? 1 : -1
+      //all product number
+      const totalProduct = productCollection.countDocuments(query)
+
+      //dynamic: distruct brand & category from all product
+      const productBrandCategory = await productCollection
+        .find({}, { projection: { category: 1, brand: 1 } })
+        .toArray();
+      //  seperate initialize brand and category  
+      const brands = [...new Set(productBrandCategory.map(product => product.brand))]
+      const categorys = [...new Set(productBrandCategory.map(product => product.category))]
+
+      const allProductList = await productCollection
+        .find(query)
+        .sort({ price: sortOption })
+        .toArray();
+      res.json({allProductList,brands,categorys,totalProduct})
     })
 
 
